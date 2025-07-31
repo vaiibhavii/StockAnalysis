@@ -63,3 +63,19 @@ Thumbs.db # Windows
 *.swp # Vim swap files
 *.swo
 .DS_Store # macOS specific
+
+# Python virtual environment
+backend/venv/
+
+# Environment variables
+backend/.env
+
+# Node.js dependencies (if you also ran npm install in a 'frontend' or 'backend' subfolder)
+node_modules/
+# If node_modules is inside backend:
+# backend/node_modules/
+
+# Python compiled files
+__pycache__/
+*.pyc
+*.pyo
