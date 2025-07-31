@@ -1,0 +1,38 @@
+# docker-compose.yml (in your project root: MyStockAnalysis/)
+
+version: '3.8' # Specify the Docker Compose file format version
+
+services:
+  # --- Backend Service ---
+  backend:
+    build: ./backend  # Tells Docker Compose to build the image from the Dockerfile in the 'backend' folder
+    ports:
+      - "8000:8000"   # Maps host port 8000 to container port 8000 (adjust if your FastAPI uses a different port)
+    volumes:
+      - ./backend:/app  # Mounts your local backend code into the container for live development
+                      # Changes on your host will reflect in the container without rebuilding
+    environment:
+      # Define environment variables for your backend (e.g., database connection details)
+      DATABASE_URL: postgresql://user:password@db:5432/mydatabase
+      # Add other env vars your app.py might need (e.g., API_KEY, DEBUG_MODE)
+    depends_on:
+      - db            # Ensures the 'db' service starts before 'backend'
+    # command: uvicorn app:app --host 0.0.0.0 --port 8000 --reload # Example for FastAPI with hot-reloading
+                                                                # If you put this here, remove CMD from Dockerfile
+
+  # --- Database Service (PostgreSQL) ---
+  db:
+    image: postgres:16-alpine # Use an official PostgreSQL image
+    volumes:
+      - db_data:/var/lib/postgresql/data # Persist database data to a named volume
+    environment:
+      POSTGRES_DB: mydatabase     # Database name
+      POSTGRES_USER: user         # Database user
+      POSTGRES_PASSWORD: password # Database password
+      # IMPORTANT: Change these to strong, secure values for production!
+    ports:
+      - "5432:5432" # Expose PostgreSQL port (optional, mainly for connecting from host tools)
+
+# --- Named Volumes (for persistent data) ---
+volumes:
+  db_data: # This volume will store your PostgreSQL data persistently
