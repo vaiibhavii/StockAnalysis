@@ -1,5 +1,65 @@
+# .gitignore for a monorepo with React, Node.js, Python, PostgreSQL
+
+# ====================
+# Node.js / React (Frontend and Backend)
+# ====================
 node_modules/
-.env
-__pycache__/
-venv/
+dist/
+build/
+.env # Environment variables - CRITICAL to ignore!
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.parcel-cache/ # Parcel bundler cache (if you use it)
+.cache/
+.eslintcache
+.next/ # Next.js specific build output (if you use Next.js instead of Create React App)
 *.log
+
+# ====================
+# Python (Data Ingestion)
+# ====================
+__pycache__/
+*.pyc
+*.pyo
+.Python/
+venv/ # Python virtual environment directory
+.venv/ # Another common name for virtual environment
+pip-log.txt
+pip-delete-this-directory.txt
+.pytest_cache/
+.mypy_cache/
+.ipynb_checkpoints/ # If you use Jupyter notebooks for data analysis
+
+# ====================
+# Operating System & IDE specific files
+# ====================
+.DS_Store # macOS
+Thumbs.db # Windows
+.vscode/ # VS Code settings (optional, if you don't want to share workspace settings)
+.idea/ # IntelliJ/WebStorm IDE settings
+*.sublime-project
+*.sublime-workspace
+
+# ====================
+# Database specific (PostgreSQL)
+# ====================
+# Generally, you don't commit database files for PostgreSQL itself,
+# but rather the schema and migration scripts.
+# If you somehow have local database files (e.g., SQLite for quick tests), ignore them.
+*.sqlite
+*.sqlite3
+*.db
+
+# ====================
+# Other common ignores
+# ====================
+*.log # General log files
+*.tmp # Temporary files
+*.swp # Vim swap files
+*.swo
+.DS_Store # macOS specific
