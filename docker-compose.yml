@@ -26,9 +26,9 @@ services:
     volumes:
       - db_data:/var/lib/postgresql/data # Persist database data to a named volume
     environment:
-      POSTGRES_DB: mydatabase     # Database name
-      POSTGRES_USER: user         # Database user
-      POSTGRES_PASSWORD: password # Database password
+      POSTGRES_DB: stock_analysis_db     # Database name
+      POSTGRES_USER: postgres         # Database user
+      POSTGRES_PASSWORD: root # Database password
       # IMPORTANT: Change these to strong, secure values for production!
     ports:
       - "5432:5432" # Expose PostgreSQL port (optional, mainly for connecting from host tools)

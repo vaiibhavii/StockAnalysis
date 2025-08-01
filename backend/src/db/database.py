@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 load_dotenv() # Load environment variables from .env file
 
 # Default to localhost if DATABASE_URL not set (e.g., for local dev without Docker Compose)
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://myuser:mypassword@localhost:5432/stock_analysis_db")
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://myuser:root@localhost:5432/stock_analysis_db")
 
 def get_db_connection():
     """Establishes and returns a connection to the PostgreSQL database."""
