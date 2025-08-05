@@ -1,0 +1,60 @@
+.stock-widget {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.stock-card {
+  background-color: white;
+  padding: 15px 20px;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  width: 220px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.stock-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.stock-logo {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+}
+
+.stock-info h4 {
+  font-size: 16px;
+  color: #111827;
+}
+
+.stock-info p {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.stock-details {
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.stock-details h3 {
+  font-size: 18px;
+  color: #111827;
+}
+
+.positive {
+  color: green;
+  font-weight: bold;
+}
+
+.negative {
+  color: red;
+  font-weight: bold;
+}
