@@ -1,0 +1,17 @@
+.stock-mini-card {
+  background: white;
+  border: 1px solid #80c7e9;
+  border-radius: 8px;
+  padding: 0.5rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.stock-name {
+  font-weight: 600;
+  color: #004850;
+}
+
+.sparkline {
+  height: 50px;
+  margin-top: 0.3rem;
+}

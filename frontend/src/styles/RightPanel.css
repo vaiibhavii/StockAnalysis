@@ -1,0 +1,24 @@
+.right-panel {
+  width: 16rem;
+  background: white;
+  border: 1px solid #80c7e9;
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.right-panel h2 {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: #00647a;
+}
+
+.right-panel ul {
+  list-style: none;
+  padding: 0;
+}
+
+.right-panel li {
+  margin-bottom: 0.5rem;
+  color: #004850;
+  font-weight: 500;
+}
