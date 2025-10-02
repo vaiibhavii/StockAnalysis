@@ -11,19 +11,15 @@ import {
   TrendingUp, BarChart3, PieChart, Settings, Activity, Eye, Star, Newspaper 
 } from 'lucide-react'; 
 
-// IMPORTANT: We use these imports in MainChart and MarketOverview, so ensure the components 
-// you created earlier contain their own imports for recharts/lucide-react items.
-// We only need the Lucide icons imported here that are used in this file (for the sidebar items).
-
 // --- API CONSTANTS ---
 const API_BASE_URL = "http://127.0.0.1:8000";
 
-// Define the tickers for the cards and default chart
+// Define the tickers for the cards and default chart (Using stable US tickers for final delivery)
 const INDEX_TICKERS = [
-  { name: 'RELIANCE', symbol: 'RELIANCE.NS' },
-  { name: 'HDFC BANK', symbol: 'HDFCBANK.NS' },
-  { name: 'TCS', symbol: 'TCS.NS' },
-  { name: 'INFOSYS', symbol: 'INFY.NS' },
+  { name: 'APPLE', symbol: 'AAPL' },
+  { name: 'MICROSOFT', symbol: 'MSFT' },
+  { name: 'GOOGLE', symbol: 'GOOGL' },
+  { name: 'AMAZON', symbol: 'AMZN' },
 ];
 // -----------------------
 
@@ -31,30 +27,45 @@ const INDEX_TICKERS = [
 const StockDashboard = () => {
   const [isDark, setIsDark] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [activeTimeframe, setActiveTimeframe] = useState('1M'); 
+  const [activeTimeframe, setActiveTimeframe] = useState('1mo'); // Fixed: Initialized to valid yfinance string
   const [searchQuery, setSearchQuery] = useState('');
   
-  // --- STATE FOR REAL DATA ---
+  // --- STATE FOR LIVE STATUS AND ACTIVE SYMBOL ---
+  const [isLive, setIsLive] = useState(false); 
+  const [activeSymbol, setActiveSymbol] = useState(INDEX_TICKERS[0].symbol); 
+  // ---------------------------
+  
   const [marketIndicesData, setMarketIndicesData] = useState([]);
   const [mainChartData, setMainChartData] = useState([]);
   const [loading, setLoading] = useState(true);
-  // ---------------------------
+
 
   // --- FALLBACK MOCK DATA ---
+  const getCurrentFormattedTime = () => {
+    const now = new Date();
+    return now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+  };
+  const getCurrentFormattedDate = () => {
+    const now = new Date();
+    return now.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+  };
+  const FALLBACK_TIME = getCurrentFormattedTime();
+  const FALLBACK_DATE = getCurrentFormattedDate();
+  
   const FALLBACK_INDICES = [
-    { name: 'RELIANCE', value: '2,900.50', change: '+55.70', percentage: '+1.96%', isPositive: true, symbol: 'RELIANCE.NS' },
-    { name: 'HDFC BANK', value: '1,710.25', change: '-10.15', percentage: '-0.59%', isPositive: false, symbol: 'HDFCBANK.NS' },
-    { name: 'TCS', value: '3,550.80', change: '+30.20', percentage: '+0.86%', isPositive: true, symbol: 'TCS.NS' },
-    { name: 'INFOSYS', value: '1,500.10', change: '-5.00', percentage: '-0.33%', isPositive: false, symbol: 'INFY.NS' },
+    { name: 'APPLE', value: '190.50', change: '+2.70', percentage: '+1.44%', isPositive: true, symbol: 'AAPL', time: FALLBACK_TIME, date: FALLBACK_DATE },
+    { name: 'MICROSOFT', value: '430.25', change: '-1.15', percentage: '-0.26%', isPositive: false, symbol: 'MSFT', time: FALLBACK_TIME, date: FALLBACK_DATE },
+    { name: 'GOOGLE', value: '180.80', change: '+0.90', percentage: '+0.50%', isPositive: true, symbol: 'GOOGL', time: FALLBACK_TIME, date: FALLBACK_DATE },
+    { name: 'AMAZON', value: '185.10', change: '-0.30', percentage: '-0.16%', isPositive: false, symbol: 'AMZN', time: FALLBACK_TIME, date: FALLBACK_DATE },
   ];
 
   const generateFallbackChartData = () => {
       const data = [];
-      const basePrice = 2800; // Use a high base price for RELIANCE
+      const basePrice = 180; 
       for (let i = 0; i < 30; i++) {
           data.push({
               time: `Day ${i + 1}`,
-              price: basePrice + Math.random() * 200 + Math.sin(i * 0.5) * 50,
+              price: basePrice + Math.random() * 10 + Math.sin(i * 0.5) * 5,
               volume: Math.floor(Math.random() * 100000)
           });
       }
@@ -63,7 +74,7 @@ const StockDashboard = () => {
   // --- END FALLBACK MOCK DATA ---
 
 
-  // --- MOCK DATA (Kept for sections we are not integrating yet) ---
+  // --- MOCK DATA (Other sections) ---
   const topMovers = {
     gainers: [
       { symbol: 'RELIANCE', name: 'Reliance Industries', price: '2,456.80', change: '+5.67%' },
@@ -93,17 +104,21 @@ const StockDashboard = () => {
     { icon: Settings, label: 'Settings' },
   ];
 
-  const timeframes = ['1D', '1W', '1M', '1Y', '5Y'];
+  const timeframes = [
+    { label: '1D', period: '1d' }, 
+    { label: '1W', period: '5d' }, 
+    { label: '1M', period: '1mo' }, 
+    { label: '3M', period: '3mo' }, 
+    { label: '1Y', period: '1y' }, 
+    { label: '5Y', period: '5y' }
+];
   // --- END MOCK DATA ---
 
 
-  // --- DATA FETCHING LOGIC ---
-  
   // Helper to convert data from API (price, change) into UI format
   const formatIndexData = (ticker, data) => {
       const isPositive = data.change >= 0;
       const changeText = `${isPositive ? '+' : '-'}${Math.abs(data.change).toFixed(2)}`;
-      // Format value with Indian numbering system (e.g., 2,900.50)
       const value = data.price.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
       
       const percentageValue = data.price > 0 ? (Math.abs(data.change) / data.price) * 100 : 0;
@@ -115,12 +130,15 @@ const StockDashboard = () => {
           change: changeText,
           percentage: percentageText,
           isPositive,
-          symbol: ticker.symbol
+          symbol: ticker.symbol,
+          time: FALLBACK_TIME, 
+          date: FALLBACK_DATE,
       };
   };
 
   // Fetch index data for all mini cards with fallback
   const fetchMarketIndices = async () => {
+    let anySuccess = false;
     const dataPromises = INDEX_TICKERS.map(async (ticker) => {
         try {
             const url = `${API_BASE_URL}/stocks/latest/${ticker.symbol}`;
@@ -129,29 +147,29 @@ const StockDashboard = () => {
                 throw new Error("API returned non-OK status");
             }
             const result = await response.json();
+            anySuccess = true;
             return formatIndexData(ticker, result);
         } catch (e) {
-            // console.error(`Failed to fetch ${ticker.symbol}. Loading mock data.`, e);
             return null; 
         }
     });
     
     const results = await Promise.all(dataPromises);
     
-    // Check which items failed and replace them with mock data if necessary
+    setIsLive(anySuccess);
+
     const finalData = results.map((result, i) => {
-      return result !== null ? result : FALLBACK_INDICES[i];
+      return result !== null ? result : FALLBACK_INDICES[i]; 
     });
 
     setMarketIndicesData(finalData);
   };
   
-  // Fetch data for the main chart (RELIANCE by default) with fallback
-  const fetchChartData = async (timeframe) => {
-      const symbol = INDEX_TICKERS[0].symbol; // Use RELIANCE.NS for the main chart
-      try {
-          const url = `${API_BASE_URL}/stocks/historical/${symbol}?period=${timeframe.toLowerCase()}`;
-          const response = await fetch(url);
+  // Fetch data for the main chart based on activeSymbol
+const fetchChartData = async (symbol, periodString) => { 
+    try {
+        const url = `${API_BASE_URL}/stocks/historical/${symbol}?period=${periodString}`;
+        const response = await fetch(url);
           if (!response.ok || response.status === 500) {
               throw new Error("API returned non-OK status");
           }
@@ -169,29 +187,40 @@ const StockDashboard = () => {
           
           setMainChartData(transformedData);
       } catch (e) {
-          // console.error("Error fetching chart data. Loading mock data.", e);
           setMainChartData(generateFallbackChartData()); // Load mock data on failure
       }
   };
 
+  // Initial Load (Fetches cards and sets loading state)
   useEffect(() => {
-    fetchMarketIndices();
-    fetchChartData(activeTimeframe);
-    setLoading(false);
+    async function initialLoad() {
+        await fetchMarketIndices();
+        setLoading(false);
+    }
+    initialLoad();
   }, []); 
 
-  // Re-fetch chart data when the timeframe button is clicked
+  // Chart Load (Triggers after initial load completes OR when symbol/timeframe changes)
   useEffect(() => {
-      if (!loading) {
-          fetchChartData(activeTimeframe);
+      if (!loading && activeSymbol) { 
+          fetchChartData(activeSymbol, activeTimeframe);
       }
-  }, [activeTimeframe, loading]); 
+  }, [activeSymbol, activeTimeframe, loading]); 
+
+  // Function to handle search from the Header
+  const handleSearch = (symbol) => {
+    const symbolUpper = symbol.toUpperCase().trim();
+    const finalSymbol = symbolUpper.includes('.') || symbolUpper.includes('^') ? symbolUpper : `${symbolUpper}.NS`;
+    setActiveSymbol(finalSymbol);
+    setSearchQuery('');
+  };
 
   const toggleTheme = () => setIsDark(!isDark);
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
 
+  const activeIndex = INDEX_TICKERS.find(i => i.symbol === activeSymbol) || { name: activeSymbol, symbol: activeSymbol };
+
   // --- START STYLES OBJECT ---
-  // The complete styles object must be placed here.
   const styles = {
     container: {
       minHeight: '100vh',
@@ -300,10 +329,6 @@ const StockDashboard = () => {
       display: 'grid',
       gridTemplateColumns: '1fr 300px',
       gap: '24px',
-      // We can't use media queries in inline styles, but this indicates the intent:
-      // '@media (max-width: 1280px)': {
-      //   gridTemplateColumns: '1fr'
-      // }
     },
     section: {
       marginBottom: '32px'
@@ -476,45 +501,45 @@ const StockDashboard = () => {
         setSearchQuery={setSearchQuery}
         toggleTheme={toggleTheme}
         toggleSidebar={toggleSidebar}
+        isLive={isLive}
+        handleSearch={handleSearch}
       />
       <div style={styles.mainLayout}>
-        <Sidebar 
-          isDark={isDark} 
-          styles={styles} 
-          sidebarOpen={sidebarOpen} 
+        <Sidebar
+          isDark={isDark}
+          styles={styles}
+          sidebarOpen={sidebarOpen}
           sidebarItems={sidebarItems}
         />
         <main style={styles.mainContent}>
           <div style={styles.dashboardGrid}>
             <div>
-              <MarketOverview 
-                isDark={isDark} 
-                styles={styles} 
-                marketIndices={marketIndicesData} 
+              <MarketOverview
+                isDark={isDark}
+                styles={styles}
+                marketIndices={marketIndicesData}
                 loading={loading}
               />
-              <MainChart 
-                isDark={isDark} 
-                styles={styles} 
-                chartData={mainChartData} 
-                timeframes={timeframes} 
-                activeTimeframe={activeTimeframe} 
+              <MainChart
+                isDark={isDark}
+                styles={styles}
+                chartData={mainChartData}
+                timeframes={timeframes}
+                activeTimeframe={activeTimeframe}
                 setActiveTimeframe={setActiveTimeframe}
-                chartTitle={INDEX_TICKERS[0].name}
+                chartTitle={activeIndex.name}
                 loading={loading}
               />
-              {/* Top Movers remains mock for the deadline */}
-              <TopMovers 
-                isDark={isDark} 
-                styles={styles} 
-                topMovers={topMovers} 
+              <TopMovers
+                isDark={isDark}
+                styles={styles}
+                topMovers={topMovers}
               />
             </div>
-            {/* Right Panel remains mock for the deadline */}
-            <RightPanel 
-              isDark={isDark} 
-              styles={styles} 
-              newsItems={newsItems} 
+            <RightPanel
+              isDark={isDark}
+              styles={styles}
+              newsItems={newsItems}
             />
           </div>
         </main>
@@ -524,557 +549,3 @@ const StockDashboard = () => {
 };
 
 export default StockDashboard;
-
-
-
-// // frontend/src/App.jsx
-
-// import React, { useState, useEffect } from 'react';
-// import Header from './components/Header';
-// import Sidebar from './components/Sidebar';
-// import MarketOverview from './components/MarketOverview';
-// import MainChart from './components/MainChart';
-// import TopMovers from './components/TopMovers';
-// import RightPanel from './components/RightPanel';
-
-// // --- CORRECT CHART IMPORTS ---
-// import { 
-//   LineChart, 
-//   Line, 
-//   XAxis, 
-//   YAxis, 
-//   CartesianGrid, 
-//   Tooltip, 
-//   ResponsiveContainer, 
-//   AreaChart, 
-//   Area 
-// } from 'recharts';
-
-// // --- CORRECT ICON IMPORTS ---
-// import { 
-//   TrendingUp, BarChart3, PieChart, Settings, Activity, Eye, Star, Newspaper 
-// } from 'lucide-react'; 
-
-// // ... rest of the code
-
-// // --- API CONSTANTS ---
-// const API_BASE_URL = "http://127.0.0.1:8000";
-
-// // Define the tickers for the cards and default chart
-// // Note: We use specific tickers for the data fetching
-// const INDEX_TICKERS = [
-//   { name: 'RELIANCE', symbol: 'RELIANCE.NS' },
-//   { name: 'HDFC BANK', symbol: 'HDFCBANK.NS' },
-//   { name: 'TCS', symbol: 'TCS.NS' },
-//   { name: 'INFOSYS', symbol: 'INFY.NS' },
-// ];
-// // -----------------------
-
-
-// const StockDashboard = () => {
-//   const [isDark, setIsDark] = useState(false);
-//   const [sidebarOpen, setSidebarOpen] = useState(true);
-//   const [activeTimeframe, setActiveTimeframe] = useState('1M'); // Changed default to 1M for data
-//   const [searchQuery, setSearchQuery] = useState('');
-  
-//   // --- STATE FOR REAL DATA ---
-//   const [marketIndicesData, setMarketIndicesData] = useState([]);
-//   const [mainChartData, setMainChartData] = useState([]);
-//   const [loading, setLoading] = useState(true);
-//   // ---------------------------
-
-// // frontend/src/App.jsx (Inside StockDashboard component)
-
-// // --- FALLBACK MOCK DATA ---
-// const FALLBACK_INDICES = [
-//   { name: 'RELIANCE', value: '2,900.50', change: '+55.70', percentage: '+1.96%', isPositive: true, symbol: 'RELIANCE.NS' },
-//   { name: 'HDFC BANK', value: '1,710.25', change: '-10.15', percentage: '-0.59%', isPositive: false, symbol: 'HDFCBANK.NS' },
-//   { name: 'TCS', value: '3,550.80', change: '+30.20', percentage: '+0.86%', isPositive: true, symbol: 'TCS.NS' },
-//   { name: 'INFOSYS', value: '1,500.10', change: '-5.00', percentage: '-0.33%', isPositive: false, symbol: 'INFY.NS' },
-// ];
-
-// // Fallback chart data generation function (use the one you already have)
-// const generateFallbackChartData = () => {
-//     const data = [];
-//     const basePrice = 2800; // Use a high base price for RELIANCE
-//     for (let i = 0; i < 30; i++) {
-//         data.push({
-//             time: `Day ${i + 1}`,
-//             price: basePrice + Math.random() * 200 + Math.sin(i * 0.5) * 50,
-//             volume: Math.floor(Math.random() * 100000)
-//         });
-//     }
-//     return data;
-// };
-
-// // --- END FALLBACK MOCK DATA ---
-
-//   // // --- MOCK DATA (Kept for sections we are not integrating yet) ---
-//   // const topMovers = {
-//   //   gainers: [
-//   //     { symbol: 'RELIANCE', name: 'Reliance Industries', price: '2,456.80', change: '+5.67%' },
-//   //     { symbol: 'TCS', name: 'Tata Consultancy Services', price: '3,789.45', change: '+4.23%' },
-//   //     { symbol: 'INFY', name: 'Infosys Limited', price: '1,634.20', change: '+3.89%' },
-//   //   ],
-//   //   losers: [
-//   //     { symbol: 'HDFC', name: 'HDFC Bank', price: '1,543.75', change: '-2.45%' },
-//   //     { symbol: 'ICICIBANK', name: 'ICICI Bank', price: '987.30', change: '-1.87%' },
-//   //     { symbol: 'BHARTIARTL', name: 'Bharti Airtel', price: '876.50', change: '-1.65%' },
-//   //   ]
-//   // };
-
-//   const newsItems = [
-//     { title: 'Market reaches new highs amid positive sentiment', time: '2 hours ago' },
-//     { title: 'Tech stocks show strong performance this quarter', time: '4 hours ago' },
-//     { title: 'Banking sector outlook remains positive', time: '6 hours ago' },
-//     { title: 'Oil prices impact energy sector stocks', time: '8 hours ago' },
-//   ];
-
-//   const sidebarItems = [
-//     { icon: BarChart3, label: 'Dashboard', active: true },
-//     { icon: TrendingUp, label: 'Indices' },
-//     { icon: Activity, label: 'Stocks' },
-//     { icon: Eye, label: 'Watchlist' },
-//     { icon: PieChart, label: 'Portfolio' },
-//     { icon: Settings, label: 'Settings' },
-//   ];
-
-//   const timeframes = ['1D', '1W', '1M', '1Y', '5Y'];
-//   // --- END MOCK DATA ---
-
-// // frontend/src/App.jsx (Inside StockDashboard component, replace the existing fetch functions)
-
-//   // Fetch index data for all mini cards with fallback
-//   const fetchMarketIndices = async () => {
-//     const dataPromises = INDEX_TICKERS.map(async (ticker) => {
-//         try {
-//             const url = `${API_BASE_URL}/stocks/latest/${ticker.symbol}`;
-//             const response = await fetch(url);
-//             if (!response.ok || response.status === 500) {
-//                 // Throw error if response is not 200 OK or is a 500
-//                 throw new Error("API returned non-OK status");
-//             }
-//             const result = await response.json();
-//             return formatIndexData(ticker, result);
-//         } catch (e) {
-//             console.error(`Failed to fetch ${ticker.symbol}. Loading mock data.`, e);
-//             // Return null on failure
-//             return null; 
-//         }
-//     });
-    
-//     const results = await Promise.all(dataPromises);
-    
-//     // If all fetches failed, use the global fallback data.
-//     if (results.every(r => r === null)) {
-//         setMarketIndicesData(FALLBACK_INDICES);
-//     } else {
-//         // Otherwise, use the results that succeeded
-//         setMarketIndicesData(results.filter((r, i) => r !== null ? r : FALLBACK_INDICES[i]));
-//     }
-//   };
-  
-//   // Fetch data for the main chart (RELIANCE by default) with fallback
-//   const fetchChartData = async (timeframe) => {
-//       const symbol = INDEX_TICKERS[0].symbol; // Use RELIANCE.NS for the main chart
-//       try {
-//           const url = `${API_BASE_URL}/stocks/historical/${symbol}?period=${timeframe.toLowerCase()}`;
-//           const response = await fetch(url);
-//           if (!response.ok || response.status === 500) {
-//               throw new Error("API returned non-OK status");
-//           }
-//           const data = await response.json();
-          
-//           // Transform API data (close_price, trade_date) to chart format (price, time)
-//           const transformedData = data.map(item => ({
-//               time: item.trade_date,
-//               price: item.close_price,
-//               volume: item.volume
-//           }));
-          
-//           if (transformedData.length === 0) {
-//               throw new Error("No data returned from backend.");
-//           }
-          
-//           setMainChartData(transformedData);
-//       } catch (e) {
-//           console.error("Error fetching chart data. Loading mock data.", e);
-//           setMainChartData(generateFallbackChartData()); // Load mock data on failure
-//       }
-//   };
-
-//   // // --- DATA FETCHING LOGIC ---
-  
-//   // // Helper to convert data from API (price, change) into UI format
-//   // const formatIndexData = (ticker, data) => {
-//   //     const isPositive = data.change >= 0;
-//   //     const changeText = `${isPositive ? '+' : '-'}${Math.abs(data.change).toFixed(2)}`;
-//   //     const value = data.price.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-      
-//   //     // Calculate a pseudo-percentage for display
-//   //     const percentageValue = data.price > 0 ? (Math.abs(data.change) / data.price) * 100 : 0;
-//   //     const percentageText = `${isPositive ? '+' : '-'}${percentageValue.toFixed(2)}%`;
-
-//   //     return {
-//   //         name: ticker.name,
-//   //         value,
-//   //         change: changeText,
-//   //         percentage: percentageText,
-//   //         isPositive,
-//   //         symbol: ticker.symbol
-//   //     };
-//   // };
-
-//   // Fetch index data for all mini cards
-//   const fetchMarketIndices = async () => {
-//     const dataPromises = INDEX_TICKERS.map(async (ticker) => {
-//         try {
-//             const url = `${API_BASE_URL}/stocks/latest/${ticker.symbol}`;
-//             const response = await fetch(url);
-//             if (!response.ok) {
-//                 // If fetching data for one index fails, we still try to proceed with others
-//                 console.error(`Failed to fetch ${ticker.symbol}: ${response.statusText}`);
-//                 return null;
-//             }
-//             const result = await response.json();
-//             return formatIndexData(ticker, result);
-//         } catch (e) {
-//             console.error(`Error fetching ${ticker.symbol}:`, e);
-//             return null;
-//         }
-//     });
-    
-//     const results = await Promise.all(dataPromises);
-//     setMarketIndicesData(results.filter(r => r !== null));
-//   };
-  
-//   // Fetch data for the main chart (NIFTY 50 by default)
-//   const fetchChartData = async (timeframe) => {
-//       const symbol = INDEX_TICKERS[0].symbol; // Use NIFTY 50 for the main chart
-//       try {
-//           const url = `${API_BASE_URL}/stocks/historical/${symbol}?period=${timeframe.toLowerCase()}`;
-//           const response = await fetch(url);
-//           if (!response.ok) {
-//               throw new Error(`Failed to fetch chart data: ${response.statusText}`);
-//           }
-//           const data = await response.json();
-          
-//           // Transform API data (close_price, trade_date) to chart format (price, time)
-//           const transformedData = data.map(item => ({
-//               time: item.trade_date, // x-axis label
-//               price: item.close_price, // y-axis value
-//               volume: item.volume
-//           }));
-//           setMainChartData(transformedData);
-//       } catch (e) {
-//           console.error("Error fetching chart data:", e);
-//           setMainChartData([]); // Clear data on error
-//       }
-//   };
-
-//   useEffect(() => {
-//     fetchMarketIndices();
-//     // Fetch initial chart data using the default timeframe
-//     fetchChartData(activeTimeframe);
-//     setLoading(false);
-//   }, []); // Run once on component mount
-
-//   // Re-fetch chart data when the timeframe button is clicked
-//   useEffect(() => {
-//       if (!loading) {
-//           fetchChartData(activeTimeframe);
-//       }
-//   }, [activeTimeframe, loading]); 
-
-//   const toggleTheme = () => setIsDark(!isDark);
-//   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
-
-//   // --- START STYLES OBJECT ---
-//   // IMPORTANT: The complete styles object from your original code must be placed here.
-//   // The provided snippet below is just a placeholder, but your file must contain the full object.
-//   const styles = {
-//     container: {
-//       minHeight: '100vh',
-//       backgroundColor: isDark ? '#111827' : '#f9fafb',
-//       color: isDark ? '#ffffff' : '#111827',
-//       transition: 'all 0.3s ease',
-//       fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
-//     },
-//     header: { /* ... */ },
-//     mainLayout: { display: 'flex' },
-//     sidebar: { /* ... */ },
-//     sidebarContent: { /* ... */ },
-//     navItem: { /* ... */ },
-//     activeNavItem: { /* ... */ },
-//     mainContent: { flex: 1, padding: '24px' },
-//     dashboardGrid: { display: 'grid', gridTemplateColumns: '1fr 300px', gap: '24px' },
-//     section: { marginBottom: '32px' },
-//     sectionTitle: { /* ... */ },
-//     cardGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px' },
-//     card: {
-//       padding: '24px',
-//       borderRadius: '12px',
-//       backgroundColor: isDark ? '#1f2937' : '#ffffff',
-//       border: `1px solid ${isDark ? '#374151' : '#e5e7eb'}`,
-//       boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)',
-//       transition: 'all 0.2s ease',
-//       cursor: 'pointer'
-//     },
-//     indexName: { /* ... */ },
-//     indexValue: { /* ... */ },
-//     changeContainer: { /* ... */ },
-//     changeText: { /* ... */ },
-//     positive: { color: '#10b981' },
-//     negative: { color: '#ef4444' },
-//     chartContainer: { /* ... */ },
-//     chartHeader: { /* ... */ },
-//     timeframeButtons: { /* ... */ },
-//     timeframeButton: { /* ... */ },
-//     activeTimeframe: { /* ... */ },
-//     inactiveTimeframe: { /* ... */ },
-//     moversGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px' },
-//     moverItem: { /* ... */ },
-//     stockInfo: { /* ... */ },
-//     stockSymbol: { /* ... */ },
-//     stockName: { /* ... */ },
-//     priceInfo: { /* ... */ },
-//     price: { /* ... */ },
-//     rightPanel: { display: 'flex', flexDirection: 'column', gap: '24px' },
-//     newsItem: { /* ... */ },
-//     newsTitle: { /* ... */ },
-//     newsTime: { /* ... */ },
-//     statItem: { /* ... */ },
-//     statLabel: { /* ... */ },
-//     statValue: { /* ... */ },
-//     // ... all other styles as provided in your original single file ...
-//   };
-//   // --- END STYLES OBJECT ---
-
-
-//   return (
-//     <div style={styles.container}>
-//       <Header
-//         isDark={isDark}
-//         styles={styles}
-//         searchQuery={searchQuery}
-//         setSearchQuery={setSearchQuery}
-//         toggleTheme={toggleTheme}
-//         toggleSidebar={toggleSidebar}
-//       />
-//       <div style={styles.mainLayout}>
-//         <Sidebar 
-//           isDark={isDark} 
-//           styles={styles} 
-//           sidebarOpen={sidebarOpen} 
-//           sidebarItems={sidebarItems}
-//         />
-//         <main style={styles.mainContent}>
-//           <div style={styles.dashboardGrid}>
-//             <div>
-//               {/* Pass the dynamic data here */}
-//               <MarketOverview 
-//                 isDark={isDark} 
-//                 styles={styles} 
-//                 marketIndices={marketIndicesData} // <-- DYNAMIC DATA
-//                 loading={loading}
-//               />
-//               {/* Pass the dynamic data and handlers here */}
-//               <MainChart 
-//                 isDark={isDark} 
-//                 styles={styles} 
-//                 chartData={mainChartData} // <-- DYNAMIC DATA
-//                 timeframes={timeframes} 
-//                 activeTimeframe={activeTimeframe} 
-//                 setActiveTimeframe={setActiveTimeframe}
-//                 chartTitle={INDEX_TICKERS[0].name}
-//                 loading={loading}
-//               />
-//               {/* Top Movers remains mock for the deadline */}
-//               <TopMovers 
-//                 isDark={isDark} 
-//                 styles={styles} 
-//                 topMovers={topMovers} 
-//               />
-//             </div>
-//             {/* Right Panel remains mock for the deadline */}
-//             <RightPanel 
-//               isDark={isDark} 
-//               styles={styles} 
-//               newsItems={newsItems} 
-//             />
-//           </div>
-//         </main>
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default StockDashboard;
-
-
-// // // frontend/src/App.jsx
-// // import React, { useState, useEffect } from 'react';
-// // import Header from './components/Header';
-// // import Sidebar from './components/Sidebar';
-// // import MarketOverview from './components/MarketOverview';
-// // import MainChart from './components/MainChart';
-// // import TopMovers from './components/TopMovers';
-// // import RightPanel from './components/RightPanel';
-// // import { TrendingUp, BarChart3, PieChart, Settings, Activity, Eye, Star, Newspaper } from 'lucide-react';
-
-// // const StockDashboard = () => {
-// //   const [isDark, setIsDark] = useState(false);
-// //   const [sidebarOpen, setSidebarOpen] = useState(true);
-// //   const [activeTimeframe, setActiveTimeframe] = useState('1D');
-// //   const [searchQuery, setSearchQuery] = useState('');
-
-// //   // --- MOCK DATA (Should be moved to API calls later) ---
-// //   const marketIndices = [
-// //     { name: 'NIFTY 50', value: '19,674.25', change: '+127.85', percentage: '+0.65%', isPositive: true },
-// //     { name: 'SENSEX', value: '65,995.63', change: '+428.75', percentage: '+0.65%', isPositive: true },
-// //     { name: 'NASDAQ', value: '13,567.98', change: '-45.32', percentage: '-0.33%', isPositive: false },
-// //     { name: 'S&P 500', value: '4,337.44', change: '+12.65', percentage: '+0.29%', isPositive: true },
-// //   ];
-
-// //   const topMovers = {
-// //     gainers: [
-// //       { symbol: 'RELIANCE', name: 'Reliance Industries', price: '2,456.80', change: '+5.67%' },
-// //       { symbol: 'TCS', name: 'Tata Consultancy Services', price: '3,789.45', change: '+4.23%' },
-// //       { symbol: 'INFY', name: 'Infosys Limited', price: '1,634.20', change: '+3.89%' },
-// //     ],
-// //     losers: [
-// //       { symbol: 'HDFC', name: 'HDFC Bank', price: '1,543.75', change: '-2.45%' },
-// //       { symbol: 'ICICIBANK', name: 'ICICI Bank', price: '987.30', change: '-1.87%' },
-// //       { symbol: 'BHARTIARTL', name: 'Bharti Airtel', price: '876.50', change: '-1.65%' },
-// //     ]
-// //   };
-
-// //   const newsItems = [
-// //     { title: 'Market reaches new highs amid positive sentiment', time: '2 hours ago' },
-// //     { title: 'Tech stocks show strong performance this quarter', time: '4 hours ago' },
-// //     { title: 'Banking sector outlook remains positive', time: '6 hours ago' },
-// //     { title: 'Oil prices impact energy sector stocks', time: '8 hours ago' },
-// //   ];
-
-// //   const sidebarItems = [
-// //     { icon: BarChart3, label: 'Dashboard', active: true },
-// //     { icon: TrendingUp, label: 'Indices' },
-// //     { icon: Activity, label: 'Stocks' },
-// //     { icon: Eye, label: 'Watchlist' },
-// //     { icon: PieChart, label: 'Portfolio' },
-// //     { icon: Settings, label: 'Settings' },
-// //   ];
-
-// //   const timeframes = ['1D', '1W', '1M', '1Y', '5Y'];
-
-// //   const generateChartData = () => {
-// //     const data = [];
-// //     const basePrice = 19000;
-// //     for (let i = 0; i < 30; i++) {
-// //       data.push({
-// //         time: i,
-// //         price: basePrice + Math.random() * 1000 + Math.sin(i * 0.2) * 300,
-// //         volume: Math.random() * 1000000
-// //       });
-// //     }
-// //     return data;
-// //   };
-// //   const chartData = generateChartData();
-// //   // --- END MOCK DATA ---
-
-// //   const toggleTheme = () => setIsDark(!isDark);
-// //   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
-
-// //   // Consolidated Style Object passed to all components
-// //   const styles = {
-// //     container: {
-// //       minHeight: '100vh',
-// //       backgroundColor: isDark ? '#111827' : '#f9fafb',
-// //       color: isDark ? '#ffffff' : '#111827',
-// //       transition: 'all 0.3s ease',
-// //       fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
-// //     },
-// //     // ... (Keep the full styles object here, but don't output it again)
-// //     header: { /* ... */ },
-// //     // ... all other styles as provided in your original single file ...
-// //     card: {
-// //       padding: '24px',
-// //       borderRadius: '12px',
-// //       backgroundColor: isDark ? '#1f2937' : '#ffffff',
-// //       border: `1px solid ${isDark ? '#374151' : '#e5e7eb'}`,
-// //       boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)',
-// //       transition: 'all 0.2s ease',
-// //       cursor: 'pointer'
-// //     },
-// //     // ...
-// //     // Note: I will only output the final combined JSX and tell the user to put the full styles object here.
-// //   };
-// //   // Note: For the actual file, ensure the entire styles object from your previous post is defined here.
-  
-// //   // To avoid writing the massive styles object here, I will structure the component JSX:
-// //   return (
-// //     <div style={styles.container}>
-// //       <Header
-// //         isDark={isDark}
-// //         styles={styles}
-// //         searchQuery={searchQuery}
-// //         setSearchQuery={setSearchQuery}
-// //         toggleTheme={toggleTheme}
-// //         toggleSidebar={toggleSidebar}
-// //       />
-// //       <div style={styles.mainLayout}>
-// //         <Sidebar 
-// //           isDark={isDark} 
-// //           styles={styles} 
-// //           sidebarOpen={sidebarOpen} 
-// //           sidebarItems={sidebarItems}
-// //         />
-// //         <main style={styles.mainContent}>
-// //           <div style={styles.dashboardGrid}>
-// //             <div>
-// //               <MarketOverview 
-// //                 isDark={isDark} 
-// //                 styles={styles} 
-// //                 marketIndices={marketIndices} 
-// //               />
-// //               <MainChart 
-// //                 isDark={isDark} 
-// //                 styles={styles} 
-// //                 chartData={chartData} 
-// //                 timeframes={timeframes} 
-// //                 activeTimeframe={activeTimeframe} 
-// //                 setActiveTimeframe={setActiveTimeframe} 
-// //               />
-// //               <TopMovers 
-// //                 isDark={isDark} 
-// //                 styles={styles} 
-// //                 topMovers={topMovers} 
-// //               />
-// //             </div>
-// //             <RightPanel 
-// //               isDark={isDark} 
-// //               styles={styles} 
-// //               newsItems={newsItems} 
-// //             />
-// //           </div>
-// //         </main>
-// //       </div>
-// //     </div>
-// //   );
-// // };
-
-// // export default StockDashboard;
-
-
-// // // import React from "react";
-// // // import Dashboard from "./components/Dashboard";
-
-// // // function App() {
-// // //   return (
-// // //     <div>
-// // //       <Dashboard />
-// // //     </div>
-// // //   );
-// // // }
-
-// // // export default App;
