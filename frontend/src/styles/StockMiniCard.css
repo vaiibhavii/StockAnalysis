@@ -1,17 +1,85 @@
 .stock-mini-card {
-  background: #fff;
-  border-radius: 8px;
-  padding: 1rem;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  text-align: center;
+  border-radius: 12px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(10px);
 }
 
-.stock-name {
+.stock-mini-card:hover {
+  box-shadow: 0 8px 24px rgba(99, 91, 255, 0.3);
+  transform: translateY(-4px);
+  border-color: #7c75ff;
+}
+
+.card-top-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+}
+
+.card-content {
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 0.5rem;
+}
+
+.card-title {
+  font-size: 0.8125rem;
   font-weight: 600;
-  color: #333;
+  margin-bottom: 0.25rem;
+}
+
+.card-value {
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.card-percent {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.card-percent.positive {
+  color: #10b981;
+}
+
+.card-percent.negative {
+  color: #ef4444;
+}
+
+.card-change {
+  font-size: 0.8125rem;
+  margin-bottom: 0.75rem;
+  font-weight: 500;
+}
+
+.card-change.positive {
+  color: #10b981;
+}
+
+.card-change.negative {
+  color: #ef4444;
 }
 
 .sparkline {
   height: 50px;
-  margin-top: 0.5rem;
+  width: 100%;
 }

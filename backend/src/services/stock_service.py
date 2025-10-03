@@ -6,7 +6,7 @@ import pandas as pd
 
 def get_daily_prices_for_graph(symbol: str, period: str = "1mo") -> List[Dict[str, Any]]:
     """
-    Fetches daily prices for a given stock symbol for a specific period directly from yfinance.
+    Fetches daily prices for a given stock symbol for a specific period using the configured data fetcher (Finnhub).
     """
     # Fetch historical data
     df = data_fetcher.fetch_stock_data(symbol, period=period)
@@ -17,17 +17,18 @@ def get_daily_prices_for_graph(symbol: str, period: str = "1mo") -> List[Dict[st
     # Reset index to turn the DateTimeIndex into a column
     df.reset_index(inplace=True)
     
-    # Rename columns to match what is commonly expected by frontends (lower case, snake_case)
-    df.columns = [
-        'trade_date', 'open_price', 'high_price', 'low_price', 
-        'close_price', 'volume', 'Dividends', 'Stock Splits'
-    ]
+    # Rename columns to match what is commonly expected by frontends (lower case, snake_case).
+    # The Finnhub fetcher provides: Index (date), Open, High, Low, Close, Volume
+    df.rename(columns={
+        'Date': 'trade_date', 'Open': 'open_price', 'High': 'high_price',
+        'Low': 'low_price', 'Close': 'close_price', 'Volume': 'volume'
+    }, inplace=True)
 
-    # Convert DataFrame rows to a list of dictionaries for API response
-    data_list = df[[
-        'trade_date', 'open_price', 'high_price', 'low_price', 
-        'close_price', 'volume'
-    ]].to_dict('records')
+    # Select only the columns we need, in case the fetcher returned more than expected.
+    required_columns = [
+        'trade_date', 'open_price', 'high_price', 'low_price', 'close_price', 'volume'
+    ]
+    data_list = df[required_columns].to_dict('records')
     
     # Format date for cleaner API response
     for item in data_list:

@@ -1,7 +1,7 @@
-.app {
-  display: flex;
-  min-height: 100vh;
-  background-color: #f0f2f5;
-  color: #333;
-  font-family: "Segoe UI", sans-serif;
+.app-container {
+  width: 100vw; /* 100% of the viewport width */
+  height: 100vh; /* 100% of the viewport height */
+  margin: 0;
+  padding: 0;
+  display: flex; /* Use flexbox to ensure the child (Dashboard) fills the space */
 }

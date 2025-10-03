@@ -1,31 +1,79 @@
 .sidebar {
-  width: 15rem;
-  background: #fff;
-  padding: 1.5rem;
-  border-right: 1px solid #ddd;
+  min-height: calc(100vh - 64px);
+  backdrop-filter: blur(10px);
+  overflow: hidden;
+  transition: all 0.3s ease;
 }
 
-.sidebar ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.sidebar li {
-  margin-bottom: 1rem;
-  cursor: pointer;
-  font-weight: 500;
-  color: #555;
+.sidebar-button {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
   padding: 0.75rem 1rem;
+  margin-bottom: 0.25rem;
   border-radius: 8px;
-  transition: background-color 0.2s, color 0.2s;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: left;
 }
 
-.sidebar li:hover {
-  background-color: #f0f2f5;
+.sidebar-button:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
 }
 
-.sidebar li.active {
-  background-color: #007bff;
-  color: #fff;
+.settings-panel {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  border-radius: 8px;
+  animation: slideIn 0.3s ease;
+}
+
+.settings-title {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.dark-mode-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0.75rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+.dark-mode-toggle span {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.toggle-switch {
+  width: 40px;
+  height: 22px;
+  border-radius: 11px;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.toggle-indicator {
+  width: 18px;
+  height: 18px;
+  background: white;
+  border-radius: 50%;
+  position: absolute;
+  top: 2px;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
 }

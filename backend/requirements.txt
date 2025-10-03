@@ -35,4 +35,8 @@ tzdata==2025.2
 urllib3==2.5.0
 uvicorn==0.35.0
 websockets==15.0.1
-yfinance==0.2.65
+finnhub-python
+
+fastapi==0.116.1
+frozendict==2.4.6
+h11==0.16.0

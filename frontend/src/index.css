@@ -1,0 +1,52 @@
+/*
+  Definitive CSS Reset for a Full-Screen Layout
+*/
+html {
+  /* Force the scrollbar to be visible so we can style it, even if content is short */
+  overflow-y: scroll;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  width: 100%;
+  padding: 0;
+  margin: 0;
+}
+
+body {
+  margin: 0; /* This is the most critical line to remove the unwanted space */
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background-color: #e0f2f7;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+/*
+  Custom Gradient Scrollbar Styles (for WebKit browsers like Chrome, Edge, Safari)
+*/
+
+/* Width of the entire scrollbar */
+::-webkit-scrollbar {
+  width: 12px;
+}
+
+/* The track (the background of the scrollbar) */
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+/* The draggable scrolling handle */
+::-webkit-scrollbar-thumb {
+  background-image: linear-gradient(to top, #a18cd1 0%, #fbc2eb 100%);
+  border-radius: 6px;
+  border: 2px solid #f1f1f1; /* Creates a nice padding effect */
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background-image: linear-gradient(to top, #8e74c2 0%, #e7a6d8 100%);
+}

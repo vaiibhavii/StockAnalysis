@@ -1,9 +1,9 @@
+import React from "react";
+import Dashboard from "./components/Dashboard";
+import './index.css'; // Make sure the global styles are imported
+
 function App() {
-  return (
-    <div>
-      <h1>Hello World! It is currently 1:29 PM on Friday in Pune.</h1>
-    </div>
-  );
+  return <Dashboard />;
 }
 
 export default App;

@@ -1,25 +1,56 @@
 .right-panel {
-  width: 18rem;
-  background: #fff;
-  border-radius: 8px;
+  border-radius: 12px;
   padding: 1.5rem;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
 }
 
-.right-panel h2 {
+.right-panel h3 {
+  font-size: 1.125rem;
   font-weight: 600;
-  margin-bottom: 1rem;
-  color: #333;
+  margin: 0 0 1rem 0;
 }
 
-.right-panel ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.right-panel li {
+.movers-title {
+  font-size: 0.8125rem;
+  font-weight: 600;
   margin-bottom: 0.75rem;
-  color: #555;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.mover-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.mover-item:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.mover-name {
+  font-size: 0.875rem;
   font-weight: 500;
+  margin-bottom: 0.125rem;
+}
+
+.mover-price {
+  font-size: 0.8125rem;
+}
+
+.mover-change {
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.mover-change.positive {
+  color: #10b981;
+}
+
+.mover-change.negative {
+  color: #ef4444;
 }
