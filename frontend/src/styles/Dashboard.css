@@ -5,7 +5,7 @@
   width: 100vw;
   margin: 0;
   padding: 0;
-  background-color: #e0f2f7;
+  background-color: #f0f2f5;
 }
 
 .dashboard-main {
@@ -14,64 +14,29 @@
   width: 100%;
 }
 
-.sidebar {
-  width: 220px;
-  flex-shrink: 0;
-}
-
 .dashboard-content {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  padding: 16px;
+  gap: 1.5rem;
+  padding: 1.5rem;
   overflow-y: auto;
 }
 
-/* Row 1: Mini stock cards */
 .mini-cards-row {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 12px;
+  gap: 1.5rem;
 }
 
-.mini-card {
-  background: #b2e0ef;
-  border-radius: 8px;
-  padding: 12px;
-  text-align: center;
-}
-
-/* Row 2: Larger cards */
 .cards-row {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 16px;
+  gap: 1.5rem;
 }
 
-.card {
-  background: white;
-  border-radius: 8px;
-  padding: 20px;
-  font-weight: 600;
-  text-align: center;
-}
-
-/* Row 3: Graph + Right panel */
 .bottom-section {
   display: grid;
   grid-template-columns: 2fr 1fr;
-  gap: 16px;
-}
-
-.graph-section {
-  background: #80c7e9;
-  border-radius: 8px;
-  padding: 16px;
-}
-
-.right-panel {
-  background: #4da8d3;
-  border-radius: 8px;
-  padding: 16px;
+  gap: 1.5rem;
 }
