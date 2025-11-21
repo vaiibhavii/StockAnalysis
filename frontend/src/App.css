@@ -1,0 +1,125 @@
+:root {
+  /* Light Mode Defaults */
+  --bg-color: #f3f4f6;
+  --sidebar-bg: #ffffff;
+  --card-bg: #ffffff;
+  --text-main: #1f2937;
+  --text-muted: #6b7280;
+  --border-color: #e5e7eb;
+  --accent-blue: #3b82f6;
+  --accent-green: #10b981;
+  --accent-red: #ef4444;
+  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+[data-theme='dark'] {
+  /* Dark Mode - Your Custom Navy Palette */
+  --bg-color: #0a0f1f;
+  --sidebar-bg: #0e1a36;
+  --card-bg: #1a2b4d;
+  --text-main: #a8c8e8;
+  --text-muted: #6b7c93;
+  --border-color: #2e6e9b;
+  --shadow: 0 4px 15px rgba(0,0,0,0.5);
+}
+
+body {
+  background-color: var(--bg-color);
+  color: var(--text-main);
+  font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  margin: 0;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Layout Grid */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 260px 1fr; /* Fixed Sidebar | Flexible Content */
+  height: 100vh;
+  overflow: hidden;
+}
+
+.main-content {
+  padding: 30px;
+  overflow-y: auto;
+}
+
+/* Card Styling */
+.card {
+  background-color: var(--card-bg);
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border-color);
+  height: 100%;
+  box-sizing: border-box;
+}
+
+/* Dashboard Internal Grids */
+.top-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.widgets-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr; /* Chart 66% | Exchange 33% */
+  gap: 24px;
+  height: 500px; /* Fixed height for chart area */
+}
+
+/* ... Keep your existing root/body variables ... */
+
+/* --- NEW: Toggle Switch (Slider) --- */
+.theme-switch {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 26px;
+}
+
+.theme-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: .4s;
+  border-radius: 34px;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  transition: .4s;
+  border-radius: 50%;
+}
+
+input:checked + .slider {
+  background-color: var(--accent-blue);
+}
+
+input:checked + .slider:before {
+  transform: translateX(24px);
+}
+
+.sidebar-icon-only {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
