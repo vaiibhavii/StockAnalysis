@@ -19,20 +19,3 @@ services:
       - db            # Ensures the 'db' service starts before 'backend'
     # command: uvicorn app:app --host 0.0.0.0 --port 8000 --reload # Example for FastAPI with hot-reloading
                                                                 # If you put this here, remove CMD from Dockerfile
-
-  # --- Database Service (PostgreSQL) ---
-  db:
-    image: postgres:16-alpine # Use an official PostgreSQL image
-    volumes:
-      - db_data:/var/lib/postgresql/data # Persist database data to a named volume
-    environment:
-      POSTGRES_DB: stock_analysis_db     # Database name
-      POSTGRES_USER: postgres         # Database user
-      POSTGRES_PASSWORD: root # Database password
-      # IMPORTANT: Change these to strong, secure values for production!
-    ports:
-      - "5432:5432" # Expose PostgreSQL port (optional, mainly for connecting from host tools)
-
-# --- Named Volumes (for persistent data) ---
-volumes:
-  db_data: # This volume will store your PostgreSQL data persistently
