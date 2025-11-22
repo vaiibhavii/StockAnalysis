@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import Plot from 'react-plotly.js';
 import Papa from 'papaparse';
 
-const ChartWidget = ({ isDark, forcedTicker, forcedYear, onDataUpdate }) => {
+// Added isSidebarOpen to props
+const ChartWidget = ({ isDark, forcedTicker, forcedYear, onDataUpdate, isSidebarOpen }) => {
   const [chartData, setChartData] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -10,7 +11,7 @@ const ChartWidget = ({ isDark, forcedTicker, forcedYear, onDataUpdate }) => {
     if(!forcedTicker || !forcedYear) return;
     
     setLoading(true);
-    setChartData([]); // Clear previous chart
+    setChartData([]); 
 
     Papa.parse(`http://localhost:8000/api/data/${forcedYear}_${forcedTicker}.csv`, {
         download: true, header: true, skipEmptyLines: true,
@@ -18,10 +19,10 @@ const ChartWidget = ({ isDark, forcedTicker, forcedYear, onDataUpdate }) => {
             const d = res.data;
             if (!d || d.length === 0) {
                 setLoading(false);
-                return; // Stop here if no data
+                return;
             }
-            
-            onDataUpdate(d, forcedTicker, forcedYear); 
+
+            if (onDataUpdate) onDataUpdate(d, forcedTicker, forcedYear);
 
             setChartData([{
                 x: d.map(r => r.date),
@@ -39,7 +40,19 @@ const ChartWidget = ({ isDark, forcedTicker, forcedYear, onDataUpdate }) => {
     });
   }, [forcedTicker, forcedYear, onDataUpdate]);
 
-  // Helper to style the empty state
+  // --- FIXED RESIZE LOGIC ---
+  useEffect(() => {
+    // 1. Trigger immediately in case it's a data load
+    window.dispatchEvent(new Event('resize'));
+
+    // 2. Set a timeout to trigger AGAIN after the sidebar animation (300ms) finishes
+    const timer = setTimeout(() => {
+        window.dispatchEvent(new Event('resize'));
+    }, 350); // 350ms to be safe
+
+    return () => clearTimeout(timer);
+  }, [chartData, isSidebarOpen]); // Runs when data changes OR sidebar toggles
+
   const emptyStateStyle = {
     display: 'flex', justifyContent: 'center', alignItems: 'center', 
     height: '100%', color: 'var(--text-muted)', fontSize: '14px', 
@@ -47,7 +60,7 @@ const ChartWidget = ({ isDark, forcedTicker, forcedYear, onDataUpdate }) => {
   };
 
   return (
-    <div className="card" style={{height: '500px'}}>
+    <div className="card" style={{height: '500px', position: 'relative'}}>
       <h3>Price History: {forcedTicker}</h3>
       
       <div style={{ height: '90%', width: '100%' }}>
@@ -58,13 +71,25 @@ const ChartWidget = ({ isDark, forcedTicker, forcedYear, onDataUpdate }) => {
               data={chartData}
               layout={{
                   autosize: true,
-                  paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)',
+                  paper_bgcolor: 'rgba(0,0,0,0)', 
+                  plot_bgcolor: 'rgba(0,0,0,0)',
                   font: { color: isDark ? '#a8c8e8' : '#1f2937' },
-                  xaxis: { gridcolor: isDark ? '#2e6e9b' : '#e5e7eb', rangeslider:{visible:false}},
-                  yaxis: { gridcolor: isDark ? '#2e6e9b' : '#e5e7eb'}
+                  xaxis: { 
+                    gridcolor: isDark ? '#2e6e9b' : '#e5e7eb', 
+                    rangeslider: { visible: false },
+                    fixedrange: true,
+                    automargin: true
+                  },
+                  yaxis: { 
+                    gridcolor: isDark ? '#2e6e9b' : '#e5e7eb',
+                    fixedrange: true,
+                    automargin: true
+                  },
+                  margin: { l: 50, r: 20, t: 30, b: 40 },
               }}
-              useResizeHandler={true} style={{ width: '100%', height: '100%' }}
-              config={{ displayModeBar: false }}
+              useResizeHandler={true}
+              style={{ width: '100%', height: '100%' }}
+              config={{ displayModeBar: false, scrollZoom: false }}
            />
         ) : (
            <div style={emptyStateStyle}>

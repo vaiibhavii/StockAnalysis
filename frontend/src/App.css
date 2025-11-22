@@ -53,6 +53,7 @@ body {
   border: 1px solid var(--border-color);
   height: 100%;
   box-sizing: border-box;
+  /* overflow: hidden; */
 }
 
 /* Dashboard Internal Grids */
@@ -122,4 +123,28 @@ input:checked + .slider:before {
   display: flex;
   justify-content: center;
   align-items: center;
+}
+
+@media print {
+  .dashboard-grid {
+    display: block;
+  }
+  /* Hide Sidebar and Header inputs when printing */
+  .dashboard-grid > div:first-child, 
+  input[type="text"], 
+  button {
+    display: none !important;
+  }
+  .main-content {
+    padding: 0;
+  }
+  .card {
+    border: 1px solid #ccc;
+    box-shadow: none;
+    margin-bottom: 20px;
+  }
+}
+
+.js-plotly-plot .plotly .main-svg {
+    background: transparent !important;
 }
